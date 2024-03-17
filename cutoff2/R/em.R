@@ -297,10 +297,9 @@ lines.em <- function(object,...) {
 # ...: parameter passed to the "line" function.
   with(object,with(as.list(param), {
     lambda <- mean(lambda)
-    curve(lambda*dnorm(x,mu1,sigma1),add=T,n=512,lty=2,...)
-    curve((1-lambda)*dnorm(x,mu2,sigma2),add=T,n=512,lty=2,...)
-    curve(lambda*dnorm(x,mu1,sigma1)+
-      (1-lambda)*dnorm(x,mu2,sigma2),add=T,n=512,...)
+    curve(lambda*dHash[[D1]](x,mu1,sigma1),add=T,n=512,lty=2,...) # curve(lambda*dnorm(x,mu1,sigma1),add=T,n=512,lty=2,...)
+    curve((1-lambda)*dHash[[D2]](x,mu2,sigma2),add=T,n=512,lty=2,...)   # curve((1-lambda)*dnorm(x,mu2,sigma2),add=T,n=512,lty=2,...)
+    curve(lambda*dHash[[D1]](x,mu1,sigma1) + (1-lambda)*dHash[[D2]](x,mu2,sigma2),add=T,n=512,...) # curve(lambda*dnorm(x,mu1,sigma1)+ (1-lambda)*dnorm(x,mu2,sigma2),add=T,n=512,...)
   }))
 }
 
