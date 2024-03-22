@@ -13,10 +13,11 @@ roxygen2::roxygenise()
 setwd(here::here())
 devtools::build("cutoff2", vignettes=TRUE) # FALSE
 
-devtools::check("cutoff2")
+# devtools::check("cutoff2")
 
 devtools::install("cutoff2", build_vignettes = TRUE) # FALSE
 
+library("cutoff2")
 help.start()
 
 setwd("cutoff2")

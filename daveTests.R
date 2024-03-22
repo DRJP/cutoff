@@ -55,7 +55,7 @@ abline(v=cut_off[1],col="tomato")
 ## Penalised fit ##
 ###################
 # Estimate parameters of finite mixture model:
-(fit2 <- em(y,"normal","normal", penaltyScale=1E4))
+(fit2 <- em(y,"normal","normal", penaltyScale=1E8))
 # Replot data
 hist(y, freq=FALSE, breaks=seq(miny, maxy, by=0.5), xlab="MFI", main="Penalised fit")
 # Add the penalised-EM estimated finite mixture model:
@@ -65,6 +65,9 @@ lines(fit2, col="red", lwd=2)
 polygon(c(cut_off[-1],rev(cut_off[-1])),c(0,0,.55,.55), col=rgb(1,0,0,.2),border=NA)
 abline(v=cut_off[-1],lty=2,col="red")
 abline(v=cut_off[1],col="red")
+
+
+plot(y, fit2$pPositive)
 
 # X11()
 

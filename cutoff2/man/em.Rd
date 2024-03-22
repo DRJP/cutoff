@@ -4,7 +4,7 @@
 \alias{em}
 \title{Expectation-Maximization estimation of a finite mixture model}
 \usage{
-em(data, D1, D2, t = 1e-64, penaltyScale = 0)
+em(data, D1, D2, t = 1e-64, penaltyScale = 0, forceOrdering = FALSE)
 }
 \arguments{
 \item{data}{A vector of real numbers, the data to model with a finite mixture model.}
@@ -16,6 +16,8 @@ em(data, D1, D2, t = 1e-64, penaltyScale = 0)
 \item{t}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
 
 \item{penaltyScale}{A positive scale parameter to penalise biologically nonsensical solutions. Defaults to 0.}
+
+\item{forceOrdering}{Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.}
 }
 \value{
 A list with class \code{em} containing the following components:
@@ -23,7 +25,7 @@ A list with class \code{em} containing the following components:
  \item{param}{the location (mu) and scale (sigma) parameters of the probability distributions \code{D1} and \code{D2}.}
 	\item{D1}{character scalar containing the name of the first probability distribution used in the finite mixture model.}
 	\item{D2}{character scalar containing the name of the second probability distribution used in the finite mixture model.}
- \item{deviance}{scalar value giving the devinace of the fit}
+ \item{deviance}{scalar value giving the devinace of the fit. Set in cutoff2 as twice the -ve log-likelihood (this doubling was omitted in cutoff). }
  \item{data}{the numerical vector of data used as input.}
 	\item{data_name}{character scalar containing the name of the dataset used as input.}
 	\item{out}{an object of class \code{mle2} that contains the maximum-likelihood estimates of parameters \code{mu1}, \code{lambda1}},
@@ -129,6 +131,24 @@ lines(fit2, col="red", lwd=2)
 polygon(c(cut_off[-1],rev(cut_off[-1])),c(0,0,.55,.55), col=rgb(1,0,0,.2),border=NA)
 abline(v=cut_off[-1],lty=2,col="red")
 abline(v=cut_off[1],col="red")
+
+###################################
+## Exploring different penalties ##
+###################################
+
+par(mfrow=c(2,3))
+fit0 <- em(y,"normal","normal")
+fit2 <- em(y,"normal","normal", penaltyScale=1E2)
+fit4 <- em(y,"normal","normal", penaltyScale=1E4)
+fit6 <- em(y,"normal","normal", penaltyScale=1E6)
+fit8 <- em(y,"normal","normal", penaltyScale=1E8)
+fit10 <- em(y,"normal","normal", penaltyScale=1E10)
+plot(y, fit0$pPositive, main="penaltyScale=0", xlab="Serology data", ylab="p(positive)", ylim=0:1); abline(h=0)
+plot(y, fit2$pPositive, main="penaltyScale=1E2", xlab="Serology data", ylab="p(positive)", ylim=0:1); abline(h=0)
+plot(y, fit4$pPositive, main="penaltyScale=1E4", xlab="Serology data", ylab="p(positive)"); abline(h=0)
+plot(y, fit6$pPositive, main="penaltyScale=1E6", xlab="Serology data", ylab="p(positive)"); abline(h=0)
+plot(y, fit8$pPositive, main="penaltyScale=1E8", xlab="Serology data", ylab="p(positive)"); abline(h=0)
+plot(y, fit10$pPositive, main="penaltyScale=1E10", xlab="Serology data", ylab="p(positive)"); abline(h=0)
 
 }
 \references{
