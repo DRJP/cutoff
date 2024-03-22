@@ -4,10 +4,10 @@
 \alias{confint.em}
 \title{Confint method of S3-class \code{em}.}
 \usage{
-\method{confint}{em}(object, t = 1e-64, nb = 10, level = 0.95)
+\method{confint}{em}(object, threshold = 1e-64, nb = 10, level = 0.95)
 }
 \arguments{
-\item{t}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
+\item{threshold}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
 
 \item{nb}{Number of Monte Carlo simulations.}
 

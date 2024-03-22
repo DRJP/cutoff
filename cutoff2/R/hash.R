@@ -16,4 +16,36 @@ qHash <- list(normal       = stats::qnorm,
               gamma        = stats::qgamma,
               weibull      = stats::qweibull)
 
-### save(dHash, pHash, qHash, file = here::here("cutoff2/R/sysdata.rdb"))
+#' @noRd
+trans1 <- function(D, mu, sigma) {
+  if(D=="log-normal") {
+    return( c(mu, log(sigma)) ) # first parameter of dlnorm does not require transforming to (-Inf, Inf)
+  } else {
+    return( log(c(mu, sigma)) )
+  }
+}
+
+#' @noRd
+trans <- function(D1, mu1, sigma1, D2, mu2, sigma2) {
+  out <- c(trans1(D1, mu1, sigma1),
+           trans1(D2, mu2, sigma2))
+  names(out) = c("mu1", "sigma1", "mu2", "sigma2")
+  return(out )
+}
+
+#' @noRd
+backTrans1 <- function(D, mu, sigma) {
+  if(D=="log-normal") {
+    return( c(mu, exp(sigma)) ) # first parameter of dlnorm does not require transforming to (-Inf, Inf)
+  } else {
+    return( exp(c(mu, sigma)) )
+  }
+}
+
+#' @noRd
+backTrans <- function(D1, mu1, sigma1, D2, mu2, sigma2) {
+  out <- c(backTrans1(D1, mu1, sigma1),
+           backTrans1(D2, mu2, sigma2))
+  names(out) = c("mu1", "sigma1", "mu2", "sigma2")
+  return(out )
+}

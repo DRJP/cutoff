@@ -4,7 +4,7 @@
 \alias{em}
 \title{Expectation-Maximization estimation of a finite mixture model}
 \usage{
-em(data, D1, D2, t = 1e-64, penaltyScale = 0, forceOrdering = FALSE)
+em(data, D1, D2, penaltyScale = 0, forceOrdering = FALSE, threshold = 1e-64)
 }
 \arguments{
 \item{data}{A vector of real numbers, the data to model with a finite mixture model.}
@@ -13,11 +13,11 @@ em(data, D1, D2, t = 1e-64, penaltyScale = 0, forceOrdering = FALSE)
 
 \item{D2}{Second probability distribution in the finite mixture model. See Details.}
 
-\item{t}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
-
 \item{penaltyScale}{A positive scale parameter to penalise biologically nonsensical solutions. Defaults to 0.}
 
 \item{forceOrdering}{Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.}
+
+\item{threshold}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
 }
 \value{
 A list with class \code{em} containing the following components:
@@ -29,7 +29,7 @@ A list with class \code{em} containing the following components:
  \item{data}{the numerical vector of data used as input.}
 	\item{data_name}{character scalar containing the name of the dataset used as input.}
 	\item{out}{an object of class \code{mle2} that contains the maximum-likelihood estimates of parameters \code{mu1}, \code{lambda1}},
-	\item{t}{the input \code{t} argument value.}
+	\item{threshold}{the input \code{threshold} argument value.}
 }
 \description{
 \code{em} returns points estimations of the parameters of a finite mixture
@@ -61,7 +61,7 @@ lines(density(measles),lwd=1.5,col="blue")
 # Estimating the parameters of the finite mixture model:
 (measles_out <- em(measles,"normal","normal"))
 # The confidence interval of the parameter estimates:
-confint(measles_out,t=1e-64,nb=100,level=.95)
+confint(measles_out,threshold=1e-64,nb=100,level=.95)
 # Adding the E-M estimated finite mixture model:
 lines(measles_out,lwd=1.5,col="red")
 # The legend:

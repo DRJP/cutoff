@@ -10,10 +10,11 @@ mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,P1,P2,Q1,Q2,penaltySc
 # "D1" and "D2" are two probability density functions.
 # "P1" and "P2" are two cummulative distribution functions.
 # "Q1" and "Q2" are two quantile functions.
-  params <- c(mu1,sigma1,mu2,sigma2)
-  names(params) <- c("mu1","sigma1","mu2","sigma2")
+  params <- backTrans(D1, mu1, sigma1, D2, mu2, sigma2) # Transform from algorithm scale (-Inf, Inf) to biological scale
+  names(params) <- c("mu1","sigma1","mu2","sigma2") # Could probably now remove this line, as naming done in backTrans should be OK
   lambda = mean(lambdaVec)
-  with(as.list(exp(params)), {
+  # with(as.list(exp(params)), {
+  with(as.list(params)), {
     ## Expected values of complete data log likelihoods
     ECDLL <- (log(lambda)   + D1(data,mu1,sigma1,log=TRUE)) * lambdaVec +
              (log(1-lambda) + D2(data,mu2,sigma2,log=TRUE)) * (1 - lambdaVec)
@@ -73,14 +74,15 @@ calcPenalty <- function(MU1,SIGMA1,MU2,SIGMA2,LAMBDA,data,d1,d2,p1,p2,q1,q2,pena
 # This function calculates the starting values of parameter "lambda".
 startval <- function(data,D1,D2) {
   #  require(tree) # for "tree".
+  # browser()
   thresh <- tree::tree(data~data)$frame$yval[1]
-  sel <- data<thresh
-  data1 <- data[sel]
-  data2 <- data[!sel]
+  sel    <- data<thresh
+  data1  <- data[sel]
+  data2  <- data[!sel]
   lambda <- length(data1)/length(data)
   param1 <- MASS::fitdistr(data1,D1)$est
   param2 <- MASS::fitdistr(data2,D2)$est
-  out <- c(param1,param2,lambda)
+  out    <- c(param1,param2,lambda)
   names(out) <- c("mu1","sigma1","mu2","sigma2","lambda")
   return(out)
 }
@@ -109,7 +111,7 @@ startval <- function(data,D1,D2) {
 #' @param data A vector of real numbers, the data to model with a finite mixture model.
 #' @param D1 First probability distribution in the finite mixture model.
 #' @param D2 Second probability distribution in the finite mixture model. See Details.
-#' @param t A numerical scalar indicating the value below which the E-M algorithm should stop.
+#' @param threshold A numerical scalar indicating the value below which the E-M algorithm should stop.
 #' @param penaltyScale A positive scale parameter to penalise biologically nonsensical solutions. Defaults to 0.
 #' @param forceOrdering Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.
 #' @return A list with class \code{em} containing the following components:
@@ -121,7 +123,7 @@ startval <- function(data,D1,D2) {
 #'  \item{data}{the numerical vector of data used as input.}
 #' 	\item{data_name}{character scalar containing the name of the dataset used as input.}
 #' 	\item{out}{an object of class \code{mle2} that contains the maximum-likelihood estimates of parameters \code{mu1}, \code{lambda1}},
-#' 	\item{t}{the input \code{t} argument value.}
+#' 	\item{threshold}{the input \code{threshold} argument value.}
 #' @references
 #' 	Chuong B. Do and Serafim Batzoglou (2008) What is the expectation
 #'    maximization algorithm? Nature Biotechnology 26(8): 897-899.\cr
@@ -142,7 +144,7 @@ startval <- function(data,D1,D2) {
 #' # Estimating the parameters of the finite mixture model:
 #' (measles_out <- em(measles,"normal","normal"))
 #' # The confidence interval of the parameter estimates:
-#' confint(measles_out,t=1e-64,nb=100,level=.95)
+#' confint(measles_out,threshold=1e-64,nb=100,level=.95)
 #' # Adding the E-M estimated finite mixture model:
 #' lines(measles_out,lwd=1.5,col="red")
 #' # The legend:
@@ -234,7 +236,8 @@ startval <- function(data,D1,D2) {
 #' @export
 # This function uses the EM algorithm to calculates parameters "lambda"
 # (E step), "mu1", "sigma1", "mu2" and "sigma2" (M step).
-em <- function(data, D1, D2, t=1e-64, penaltyScale=0, forceOrdering = FALSE) {
+em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e-64) {
+  # browser()
   data_name <- unlist(strsplit(deparse(match.call()),"="))[2]
   data_name <- sub(",.*$","",gsub(" ","",data_name))
   start <- as.list(startval(data,D1,D2))
@@ -246,7 +249,9 @@ em <- function(data, D1, D2, t=1e-64, penaltyScale=0, forceOrdering = FALSE) {
   Q2  <- qHash[[D2]]
   lambda0 <- 0 # the previous value of lambda (scalar).
   with(start, {
-    while(abs(lambda0-mean(lambda))>t) {
+    # with(start, (abs(lambda0-mean(lambda))>threshold)  )
+    ## browser()
+    while(abs(lambda0-mean(lambda))>threshold) {
       lambda  <- mean(lambda)
       lambda0 <- lambda
       # Expectation step:
@@ -256,38 +261,58 @@ em <- function(data, D1, D2, t=1e-64, penaltyScale=0, forceOrdering = FALSE) {
       # Minimization step (maximum-likelihood parameters estimations):
       # browser()
       mLL2 <- function(mu1,sigma1,mu2,sigma2)
-			return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1b,D2b,P1,P2,Q1,Q2,penaltyScale))
-      start <- as.list(log(c(mu1=mu1,sigma1=sigma1,mu2=mu2,sigma2=sigma2)))
-      out <- bbmle::mle2(mLL2,start,"Nelder-Mead")
+        return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1b,D2b,P1,P2,Q1,Q2,penaltyScale))
+      start <- as.list(trans(D1, mu1, sigma1, mu2, sigma2))
+      out   <- bbmle::mle2(mLL2,start,"Nelder-Mead")
       # The following 4 lines assign the MLE values to the corresponding parameters:
       coef <- out@coef
+      coef <- c(backTrans(D1, coef["mu1"], coef["sigma1"]), D2, coef["mu2"], coef["sigma2"])
       coef_n <- names(coef)
       names(coef) <- NULL
-      for(i in 1:4) assign(coef_n[i],exp(coef[i]))
+      for(i in 1:4)
+        assign(coef_n[i], (coef[i]))
+      browser()
+
+      ## REMOVE EXPONENTIAL FOR MEAN OF LOG-NORMAL
+
       # Force ordering:
-      if (out@coef["mu1"] > out@coef["mu2"] & forceOrdering == TRUE) {
-        D1old      <- D1
-        D1         <- D2
-        D2         <- D1old
-        D1b        <- dHash[[D1]]
-        D2b        <- dHash[[D2]]
-        P1         <- pHash[[D1]]
-        P2         <- pHash[[D2]]
-        Q1         <- qHash[[D1]]
-        Q2         <- qHash[[D2]]
-        m1_old     <- mu1
-        mu1        <- m2
-        mu2        <- mu1_old
-        sigma1_old <-sigma1
-        sigma1     <-sigma2
-        sigma2     <- sigma1_old
-        lambda     <- 1 - lambda
-        lambda0    <- 0 ## Forces at least one more iteration
-        warning("Note: forceOrdering = TRUE. Models 1 & 2 have been switched.")
+      ## dHash[["log-normal"]]
+
+      getMean <- function(D, mu, sigma) {
+        if (D == "normal")
+          Mean = mu
+        if (D == "log-normal")
+          Mean = X
+        if (D == "Weibull")
+          Mean = Y
+        if (D == "gamma")
+          Mean = mu/sigma # mu=proxy4(shape), sigma=proxy4(rate)
+        return(Mean)
       }
+      ## if (mean1 > mean2 & forceOrdering == TRUE) {
+      ##   # browser()
+      ##   D1old      <- D1
+      ##   D1         <- D2
+      ##   D2         <- D1old
+      ##   D1b        <- dHash[[D1]]
+      ##   D2b        <- dHash[[D2]]
+      ##   P1         <- pHash[[D1]]
+      ##   P2         <- pHash[[D2]]
+      ##   Q1         <- qHash[[D1]]
+      ##   Q2         <- qHash[[D2]]
+      ##   mu1_old    <- mu1
+      ##   mu1        <- mu2
+      ##   mu2        <- mu1_old
+      ##   sigma1_old <-sigma1
+      ##   sigma1     <-sigma2
+      ##   sigma2     <- sigma1_old
+      ##   lambda     <- 1 - lambda
+      ##   lambda0    <- 0 ## Forces at least one more iteration
+      ##   warning("Note: forceOrdering = TRUE. Models 1 & 2 have been switched.")
+      ## }
     }
     # browser()
-    if (out@coef["mu1"]<out@coef["mu2"]) {
+    if (out@coef["mu1"] < out@coef["mu2"]) {
       pPositive = 1-lambda
     } else {
       pPositive = lambda
@@ -296,13 +321,13 @@ em <- function(data, D1, D2, t=1e-64, penaltyScale=0, forceOrdering = FALSE) {
     out <- list(
       pPositive=pPositive,
       lambda=lambda,
-      param=exp(out@coef),
+      param=coef, # exp(out@coef), # backTrans(D1, mu1, sigma1, D2, mu2, sigma2)
       D1=D1,
       D2=D2,
       deviance=2*out@min, # Was previously deviance = out@min (i.e. -log-lik), which is a non-standard definition.
       data=data,
       data_name=data_name,
-      out=out,t=t)
+      out=out,threshold=threshold)
     class(out) <- "em"
     return(out)
   })
@@ -380,8 +405,8 @@ lines.em <- function(object,...) {
 #' @method confint em
 # This function returns the parameter values and their confidence
 # intervals from an output of the "em" function.
-confint.em <- function(object,t=1e-64,nb=10,level=.95) {
+confint.em <- function(object,threshold=1e-64,nb=10,level=.95) {
   a <- coef_ci(object,level)
-  b <- lambda_ci(object,t,nb,level)
+  b <- lambda_ci(object,threshold,nb,level)
   return(rbind(a,b))
 }

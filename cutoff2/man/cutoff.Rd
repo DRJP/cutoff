@@ -17,8 +17,6 @@ cutoff(
 \arguments{
 \item{object}{An output from the function \code{em}.}
 
-\item{t}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
-
 \item{nb}{Number of Monte Carlo simulations.}
 
 \item{distr}{Either 1 or 2, indicates which distribution belonging the Type-I
