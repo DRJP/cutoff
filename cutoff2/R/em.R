@@ -21,7 +21,9 @@ mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,P1,P2,Q1,Q2,penaltySc
     ## Penalties
     penalty <- 0
     if (penaltyScale > 0) {
-      if (mu1 < mu2) {
+      mean1 <- getMean(D1, mu1, sigma1)
+      mean2 <- getMean(D2, mu2, sigma2)
+      if (mean1 < mean2) {
         penalty <- calcPenalty(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,P1,P2,Q1,Q2,penaltyScale)
       } else {
         penalty <- calcPenalty(mu2,sigma2,mu1,sigma1,1-lambda,data,D2,D1,P2,P1,Q2,Q1,penaltyScale)
@@ -271,51 +273,34 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       names(coef) <- NULL
       for(i in 1:4)
         assign(coef_n[i], (coef[i]))
-      browser()
-
-      ## REMOVE EXPONENTIAL FOR MEAN OF LOG-NORMAL
-
-      # Force ordering:
-      ## dHash[["log-normal"]]
-
-      getMean <- function(D, mu, sigma) {
-        if (D == "normal")
-          Mean = mu
-        if (D == "log-normal")
-          Mean = X
-        if (D == "Weibull")
-          Mean = Y
-        if (D == "gamma")
-          Mean = mu/sigma # mu=proxy4(shape), sigma=proxy4(rate)
-        return(Mean)
+      #
+      mean1 <- getMean(D1, mu1, sigma1)
+      mean2 <- getMean(D2, mu2, sigma2)
+      if(mean1 < mean2) {
+        pPositive = 1 - lambda
+      } else {
+        pPositive = lambda
+        if (forceOrdering == TRUE) {
+          D1old      <- D1
+          D1         <- D2
+          D2         <- D1old
+          D1b        <- dHash[[D1]]
+          D2b        <- dHash[[D2]]
+          P1         <- pHash[[D1]]
+          P2         <- pHash[[D2]]
+          Q1         <- qHash[[D1]]
+          Q2         <- qHash[[D2]]
+          mu1_old    <- mu1
+          mu1        <- mu2
+          mu2        <- mu1_old
+          sigma1_old <-sigma1
+          sigma1     <-sigma2
+          sigma2     <- sigma1_old
+          lambda     <- 1 - lambda
+          lambda0    <- 0 ## Forces at least one more iteration
+          warning("Note: forceOrdering = TRUE. Models 1 & 2 have been switched.")
+        }
       }
-      ## if (mean1 > mean2 & forceOrdering == TRUE) {
-      ##   # browser()
-      ##   D1old      <- D1
-      ##   D1         <- D2
-      ##   D2         <- D1old
-      ##   D1b        <- dHash[[D1]]
-      ##   D2b        <- dHash[[D2]]
-      ##   P1         <- pHash[[D1]]
-      ##   P2         <- pHash[[D2]]
-      ##   Q1         <- qHash[[D1]]
-      ##   Q2         <- qHash[[D2]]
-      ##   mu1_old    <- mu1
-      ##   mu1        <- mu2
-      ##   mu2        <- mu1_old
-      ##   sigma1_old <-sigma1
-      ##   sigma1     <-sigma2
-      ##   sigma2     <- sigma1_old
-      ##   lambda     <- 1 - lambda
-      ##   lambda0    <- 0 ## Forces at least one more iteration
-      ##   warning("Note: forceOrdering = TRUE. Models 1 & 2 have been switched.")
-      ## }
-    }
-    # browser()
-    if (out@coef["mu1"] < out@coef["mu2"]) {
-      pPositive = 1-lambda
-    } else {
-      pPositive = lambda
     }
     #
     out <- list(
