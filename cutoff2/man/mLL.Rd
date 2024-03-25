@@ -13,10 +13,12 @@ mLL(
   data,
   D1,
   D2,
-  P1,
-  P2,
-  Q1,
-  Q2,
+  d1,
+  d2,
+  p1,
+  p2,
+  q1,
+  q2,
   penaltyScale
 )
 }

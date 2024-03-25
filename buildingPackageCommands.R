@@ -6,6 +6,9 @@ unloadNamespace("cutoff")
 unloadNamespace("cutoff2")
 #
 setwd(here::here('cutoff2'))
+# Remove Rd files (which cause bugs with deeted cutoff2.rdb file for some reason)
+system(paste0("rm ", here::here("cutoff2/man"), "/*"))
+#
 roxygen2::roxygenise()
 #
 setwd(here::here())

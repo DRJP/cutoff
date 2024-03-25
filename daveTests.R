@@ -114,10 +114,10 @@ hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalty
 (fit_9  <- em(yy,"gamma","normal", penaltyScale=1E6, TRUE))
 (fit_10 <- em(yy,"gamma","weibull", penaltyScale=1E6, TRUE))
 (fit_11 <- em(yy,"gamma","gamma", penaltyScale=1E6, TRUE))
-   (fit_12 <- em(yy,"gamma","log-normal", penaltyScale=1E6, TRUE))
+   (fit_12 <- em(yy,"gamma","log-normal", penaltyScale=1E6, TRUE, thresh=exp(-25)))
 (fit_13 <- em(yy,"log-normal","normal", penaltyScale=1E6, TRUE))
 (fit_14 <- em(yy,"log-normal","weibull", penaltyScale=1E6, TRUE))
-   (fit_15 <- em(yy,"log-normal","gamma", penaltyScale=1E6, TRUE))
+   (fit_15 <- em(yy,"log-normal","gamma", penaltyScale=1E6, TRUE, thresh=exp(-25)))
 (fit_16 <- em(yy,"log-normal","log-normal", penaltyScale=1E6, TRUE))
 
 par(mfrow=c(4,4))

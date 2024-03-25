@@ -4,32 +4,35 @@
 # This function returns minus the log-likelihood of the set of parameters "mu1",
 # "sigma1", "mu2" and "sigma2", given dataset "data", distributions "D1" and
 # "D2", and parameter "lambda".
-mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,P1,P2,Q1,Q2,penaltyScale) {
+mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale) {
 # "mu1", "mu2", "sigma1" and "sigma2" are the log of the parameter values.
 # "lambdaVec" and "data" are two numeric vectors of the same length.
 # "D1" and "D2" are two probability density functions.
-# "P1" and "P2" are two cummulative distribution functions.
-# "Q1" and "Q2" are two quantile functions.
+# "p1" and "p2" are two cummulative distribution functions.
+  # "q1" and "q2" are two quantile functions.
+  # browser()
   params <- backTrans(D1, mu1, sigma1, D2, mu2, sigma2) # Transform from algorithm scale (-Inf, Inf) to biological scale
   names(params) <- c("mu1","sigma1","mu2","sigma2") # Could probably now remove this line, as naming done in backTrans should be OK
   lambda = mean(lambdaVec)
   # with(as.list(exp(params)), {
-  with(as.list(params)), {
+  with(as.list(params), {
     ## Expected values of complete data log likelihoods
-    ECDLL <- (log(lambda)   + D1(data,mu1,sigma1,log=TRUE)) * lambdaVec +
-             (log(1-lambda) + D2(data,mu2,sigma2,log=TRUE)) * (1 - lambdaVec)
+    ECDLL <- (log(lambda)   + d1(data,mu1,sigma1,log=TRUE)) * lambdaVec +
+             (log(1-lambda) + d2(data,mu2,sigma2,log=TRUE)) * (1 - lambdaVec)
+    ## LEL <- log(lambda * d1(data,mu1,sigma1) + (1-lambda) * d2(data,mu2,sigma2))
     ## Penalties
     penalty <- 0
     if (penaltyScale > 0) {
       mean1 <- getMean(D1, mu1, sigma1)
       mean2 <- getMean(D2, mu2, sigma2)
       if (mean1 < mean2) {
-        penalty <- calcPenalty(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,P1,P2,Q1,Q2,penaltyScale)
+        penalty <- calcPenalty(mu1,sigma1,mu2,sigma2,lambda,data,d1,d2,p1,p2,q1,q2,penaltyScale)
       } else {
-        penalty <- calcPenalty(mu2,sigma2,mu1,sigma1,1-lambda,data,D2,D1,P2,P1,Q2,Q1,penaltyScale)
+        penalty <- calcPenalty(mu2,sigma2,mu1,sigma1,1-lambda,data,d2,d1,p2,p1,q2,q1,penaltyScale)
       }
     }
     return( -sum(ECDLL) - penalty)
+    # return( -sum(LEL) - penalty)
   })
 }
 
@@ -74,7 +77,7 @@ calcPenalty <- function(MU1,SIGMA1,MU2,SIGMA2,LAMBDA,data,d1,d2,p1,p2,q1,q2,pena
 #'
 #' @keywords internal
 # This function calculates the starting values of parameter "lambda".
-startval <- function(data,D1,D2) {
+startval <- function(data,d1,d2) {
   #  require(tree) # for "tree".
   # browser()
   thresh <- tree::tree(data~data)$frame$yval[1]
@@ -82,8 +85,8 @@ startval <- function(data,D1,D2) {
   data1  <- data[sel]
   data2  <- data[!sel]
   lambda <- length(data1)/length(data)
-  param1 <- MASS::fitdistr(data1,D1)$est
-  param2 <- MASS::fitdistr(data2,D2)$est
+  param1 <- MASS::fitdistr(data1,d1)$est
+  param2 <- MASS::fitdistr(data2,d2)$est
   out    <- c(param1,param2,lambda)
   names(out) <- c("mu1","sigma1","mu2","sigma2","lambda")
   return(out)
@@ -243,12 +246,12 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
   data_name <- unlist(strsplit(deparse(match.call()),"="))[2]
   data_name <- sub(",.*$","",gsub(" ","",data_name))
   start <- as.list(startval(data,D1,D2))
-  D1b <- dHash[[D1]]
-  D2b <- dHash[[D2]]
-  P1  <- pHash[[D1]]
-  P2  <- pHash[[D2]]
-  Q1  <- qHash[[D1]]
-  Q2  <- qHash[[D2]]
+  d1 <- dHash[[D1]]
+  d2 <- dHash[[D2]]
+  p1 <- pHash[[D1]]
+  p2 <- pHash[[D2]]
+  q1 <- qHash[[D1]]
+  q2 <- qHash[[D2]]
   lambda0 <- 0 # the previous value of lambda (scalar).
   with(start, {
     # with(start, (abs(lambda0-mean(lambda))>threshold)  )
@@ -257,18 +260,21 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       lambda  <- mean(lambda)
       lambda0 <- lambda
       # Expectation step:
-      distr1 <- lambda*D1b(data,mu1,sigma1)
-      distr2 <- (1-lambda)*D2b(data,mu2,sigma2)
+      distr1 <- lambda*d1(data,mu1,sigma1)
+      distr2 <- (1-lambda)*d2(data,mu2,sigma2)
       lambda <- distr1/(distr1+distr2) # lambda is a vector.
       # Minimization step (maximum-likelihood parameters estimations):
       # browser()
       mLL2 <- function(mu1,sigma1,mu2,sigma2)
-        return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1b,D2b,P1,P2,Q1,Q2,penaltyScale))
-      start <- as.list(trans(D1, mu1, sigma1, mu2, sigma2))
-      out   <- bbmle::mle2(mLL2,start,"Nelder-Mead")
-      # The following 4 lines assign the MLE values to the corresponding parameters:
+        return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale))
+      start <- as.list(trans(D1, mu1, sigma1, D2, mu2, sigma2))
+      out   <- bbmle::mle2(mLL2,start,"Nelder-Mead", control=list(maxit=10000))
+      # The lines assign the MLE values to the corresponding parameters:
+      # print( out)
+      # print( log(abs(lambda0-mean(lambda))) )
+      # browser()
       coef <- out@coef
-      coef <- c(backTrans(D1, coef["mu1"], coef["sigma1"]), D2, coef["mu2"], coef["sigma2"])
+      coef <- backTrans(D1, coef["mu1"], coef["sigma1"], D2, coef["mu2"], coef["sigma2"])
       coef_n <- names(coef)
       names(coef) <- NULL
       for(i in 1:4)
@@ -284,12 +290,12 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
           D1old      <- D1
           D1         <- D2
           D2         <- D1old
-          D1b        <- dHash[[D1]]
-          D2b        <- dHash[[D2]]
-          P1         <- pHash[[D1]]
-          P2         <- pHash[[D2]]
-          Q1         <- qHash[[D1]]
-          Q2         <- qHash[[D2]]
+          d1         <- dHash[[D1]]
+          d2         <- dHash[[D2]]
+          p1         <- pHash[[D1]]
+          p2         <- pHash[[D2]]
+          q1         <- qHash[[D1]]
+          q2         <- qHash[[D2]]
           mu1_old    <- mu1
           mu1        <- mu2
           mu2        <- mu1_old

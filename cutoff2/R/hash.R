@@ -17,7 +17,7 @@ qHash <- list(normal       = stats::qnorm,
               weibull      = stats::qweibull)
 
 #' @noRd
-trans1 <- function(D, mu, sigma) {
+transOne <- function(D, mu, sigma) {
   if(D=="log-normal") {
     return( c(mu, log(sigma)) ) # first parameter of dlnorm does not require transforming to (-Inf, Inf)
   } else {
@@ -27,14 +27,15 @@ trans1 <- function(D, mu, sigma) {
 
 #' @noRd
 trans <- function(D1, mu1, sigma1, D2, mu2, sigma2) {
-  out <- c(trans1(D1, mu1, sigma1),
-           trans1(D2, mu2, sigma2))
+  #  browser()
+  out <- c(transOne(D1, mu1, sigma1),
+           transOne(D2, mu2, sigma2))
   names(out) = c("mu1", "sigma1", "mu2", "sigma2")
   return(out )
 }
 
 #' @noRd
-backTrans1 <- function(D, mu, sigma) {
+backTransOne <- function(D, mu, sigma) {
   if(D=="log-normal") {
     return( c(mu, exp(sigma)) ) # first parameter of dlnorm does not require transforming to (-Inf, Inf)
   } else {
@@ -44,14 +45,16 @@ backTrans1 <- function(D, mu, sigma) {
 
 #' @noRd
 backTrans <- function(D1, mu1, sigma1, D2, mu2, sigma2) {
-  out <- c(backTrans1(D1, mu1, sigma1),
-           backTrans1(D2, mu2, sigma2))
+  # browser()
+  out <- c(backTransOne(D1, mu1, sigma1),
+           backTransOne(D2, mu2, sigma2))
   names(out) = c("mu1", "sigma1", "mu2", "sigma2")
   return(out )
 }
 
 #' @noRd
 getMean <- function(D, mu, sigma) {
+  # browser()
   if (D == "normal")
     Mean = mu
   if (D == "log-normal")

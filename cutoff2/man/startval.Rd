@@ -4,7 +4,7 @@
 \alias{startval}
 \title{Starting values of the parameter of a finite mixture model.}
 \usage{
-startval(data, D1, D2)
+startval(data, d1, d2)
 }
 \description{
 Starting values of the parameter of a finite mixture model.
