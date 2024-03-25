@@ -116,7 +116,7 @@ startval <- function(data,d1,d2) {
 #' @param D2 Second probability distribution in the finite mixture model. See Details.
 #' @param threshold A numerical scalar indicating the value below which the E-M algorithm should stop.
 #' @param penaltyScale A positive scale parameter to penalise biologically nonsensical solutions. Defaults to 0.
-#' @param forceOrdering Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.
+#' @param forceOrder Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.
 #' @return A list with class \code{em} containing the following components:
 #' 	\item{lambda}{a numerical vector of length \code{length(data)} containing, for each datum, the probability to belong to distribution \code{D1}.}
 #'  \item{param}{the location (mu) and scale (sigma) parameters of the probability distributions \code{D1} and \code{D2}.}
@@ -239,7 +239,7 @@ startval <- function(data,d1,d2) {
 #' @export
 # This function uses the EM algorithm to calculates parameters "lambda"
 # (E step), "mu1", "sigma1", "mu2" and "sigma2" (M step).
-em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e-64) {
+em <- function(data, D1, D2, penaltyScale=0, forceOrder = FALSE, threshold=1e-64) {
   data_name <- unlist(strsplit(deparse(match.call()),"="))[2]
   data_name <- sub(",.*$","",gsub(" ","",data_name))
   start <- as.list(startval(data,D1,D2))
@@ -250,9 +250,13 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
   q1 <- qHash[[D1]]
   q2 <- qHash[[D2]]
   lambda0 <- 0 # the previous value of lambda (scalar).
+  counter = 0 # For debugging only
   with(start, {
     # with(start, (abs(lambda0-mean(lambda))>threshold)  )
     while(abs(lambda0-mean(lambda))>threshold) {
+      counter = counter + 1
+      print(counter)
+      # browser()
       lambda  <- mean(lambda)
       lambda0 <- lambda
       # Expectation step:
@@ -262,6 +266,7 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       # Minimization step (maximum-likelihood parameters estimations):
       mLL2 <- function(mu1,sigma1,mu2,sigma2)
         return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale))
+      # browser()
       start <- as.list(trans(D1, mu1, sigma1, D2, mu2, sigma2))
       out   <- bbmle::mle2(mLL2,start,"Nelder-Mead", control=list(maxit=10000))
       # The following lines assign the MLE values to the corresponding parameters:
@@ -279,7 +284,7 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
         pPositive = 1 - lambda
       } else {
         pPositive = lambda
-        if (forceOrdering == TRUE) {
+        if (forceOrder == TRUE) {
           D1old      <- D1
           D1         <- D2
           D2         <- D1old
@@ -297,7 +302,7 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
           sigma2     <- sigma1_old
           lambda     <- 1 - lambda
           lambda0    <- 0 ## Forces at least one more iteration
-          warning("Note: forceOrdering = TRUE. Models 1 & 2 have been switched.")
+          warning("Note: forceOrder = TRUE. Models 1 & 2 have been switched.")
         }
       }
     }
@@ -334,13 +339,18 @@ print.em <- function(object) {
   param <- as.list(object$param)
   digits <- unlist(options("digits"))
   cat(paste0("\n        Finite mixture model fitting to dataset \"", object$data_name,"\":\n\n"))
-  cat(paste("probability to belong to distribution 1 =", round(mean(object$lambda),digits),"\n"))
   cat(paste("distribution 1:",object$D1,"\n"))
-  cat(paste0("  location (",hash[[object$D1]][1],") = ", round(param$mu1,digits),"\n"))
-  cat(paste0("  scale (",hash[[object$D1]][2],") = ", round(param$sigma1,digits),"\n"))
+  cat(paste0("  probability        = ", round(mean(object$lambda),digits),"\n"))
+  cat(paste0("  location (",hash[[object$D1]][1],")   = ", round(param$mu1,digits),"\n"))
+  cat(paste0("  scale (",hash[[object$D1]][2],")      = ", round(param$sigma1,digits),"\n"))
+  cat(paste0("  mean               = ", round(getMean(object$D1, param$mu1, param$sigma1),digits),"\n"))
+  cat(paste0("  standard deviation = ", round(getSD(object$D1, param$mu1, param$sigma1),digits),"\n"))
   cat(paste("distribution 2:",object$D2,"\n"))
-  cat(paste0("  location (",hash[[object$D2]][1],") = ", round(param$mu2,digits),"\n"))
-  cat(paste0("  scale (",hash[[object$D2]][2],") = ", round(param$sigma2,digits),"\n"))
+  cat(paste0("  probability        = ", 1-round(mean(object$lambda),digits),"\n"))
+  cat(paste0("  location (",hash[[object$D2]][1],")   = ", round(param$mu2,digits),"\n"))
+  cat(paste0("  scale (",hash[[object$D2]][2],")      = ", round(param$sigma2,digits),"\n"))
+  cat(paste0("  mean               = ", round(getMean(object$D2, param$mu2, param$sigma2),digits),"\n"))
+  cat(paste0("  standard deviation = ", round(getSD(object$D2, param$mu2, param$sigma2),digits),"\n"))
   cat(paste("deviance of the fitted model:", round(object$deviance,digits),"\n\n"))
 }
 

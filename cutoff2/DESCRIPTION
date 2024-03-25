@@ -24,4 +24,4 @@ Suggests:
   testthat
 VignetteBuilder: knitr
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.1

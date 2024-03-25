@@ -4,7 +4,7 @@
 \alias{em}
 \title{Expectation-Maximization estimation of a finite mixture model}
 \usage{
-em(data, D1, D2, penaltyScale = 0, forceOrdering = FALSE, threshold = 1e-64)
+em(data, D1, D2, penaltyScale = 0, forceOrder = FALSE, threshold = 1e-64)
 }
 \arguments{
 \item{data}{A vector of real numbers, the data to model with a finite mixture model.}
@@ -15,7 +15,7 @@ em(data, D1, D2, penaltyScale = 0, forceOrdering = FALSE, threshold = 1e-64)
 
 \item{penaltyScale}{A positive scale parameter to penalise biologically nonsensical solutions. Defaults to 0.}
 
-\item{forceOrdering}{Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.}
+\item{forceOrder}{Logical. If TRUE then models 1 and 2 are switched every time the maximisation step results in mu[1] > mu[2]. A warning message is printed each time this occurs.}
 
 \item{threshold}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
 }

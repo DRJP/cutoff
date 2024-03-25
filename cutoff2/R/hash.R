@@ -65,3 +65,17 @@ getMean <- function(D, mu, sigma) {
     Mean = mu/sigma # mu=proxy4(shape), sigma=proxy4(rate)
   return(Mean)
 }
+
+#' @noRd
+getSD <- function(D, mu, sigma) {
+  # browser()
+  if (D == "normal")
+    SD = sigma
+  if (D == "log-normal")
+    SD = sqrt((exp(sigma^2)-1)*exp(2*mu+sigma^2))
+  if (D == "weibull")
+    SD = sqrt(sigma^2*(gamma(1+2/mu)-(gamma(1+1/mu))^2)) # mu=proxy4(shape), sigma=proxy4(scale)
+  if (D == "gamma")
+    SD = mu/sigma^2 # mu=proxy4(shape), sigma=proxy4(rate)
+  return(SD)
+}

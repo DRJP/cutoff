@@ -1,11 +1,15 @@
-#' foo: A package for computating the notorious bar statistic.
+#' cutoff2: A package for fitting penalised k=2 mixture models to serology data.
 #'
-#' The foo package provides three categories of important functions:
-#' foo, bar and baz.
-#' 
+#' cutoff2 is addapted from cutoff.  Various modifications have been included, such as:
+#' penalising against biological non-sensical solutions in the tails;
+#' providing the probability that each sample is positive in the output of the em function;
+#' an added flag permits the orderring of the two models to be switched so that the means are always orderred in ascending order;
+#' some new examples have been added.
+#'
+#'
 #' @section Foo functions:
-#' The foo functions ...
+#'
 #'
 #' @docType package
-#' @name foo
+#' @name cutoff2
 NULL
