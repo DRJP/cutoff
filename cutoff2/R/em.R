@@ -255,7 +255,6 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
   lambda0 <- 0 # the previous value of lambda (scalar).
   with(start, {
     # with(start, (abs(lambda0-mean(lambda))>threshold)  )
-    ## browser()
     while(abs(lambda0-mean(lambda))>threshold) {
       lambda  <- mean(lambda)
       lambda0 <- lambda
@@ -269,14 +268,14 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
         return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale))
       start <- as.list(trans(D1, mu1, sigma1, D2, mu2, sigma2))
       out   <- bbmle::mle2(mLL2,start,"Nelder-Mead", control=list(maxit=10000))
-      # The lines assign the MLE values to the corresponding parameters:
+      # The following lines assign the MLE values to the corresponding parameters:
       # print( out)
       # print( log(abs(lambda0-mean(lambda))) )
       # browser()
       coef <- out@coef
       coef <- backTrans(D1, coef["mu1"], coef["sigma1"], D2, coef["mu2"], coef["sigma2"])
       coef_n <- names(coef)
-      names(coef) <- NULL
+      # names(coef) <- NULL # No longer needed. Causes problems in print.em
       for(i in 1:4)
         assign(coef_n[i], (coef[i]))
       #
@@ -318,7 +317,9 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       deviance=2*out@min, # Was previously deviance = out@min (i.e. -log-lik), which is a non-standard definition.
       data=data,
       data_name=data_name,
-      out=out,threshold=threshold)
+      out=out,
+      threshold=threshold)
+    # browser()
     class(out) <- "em"
     return(out)
   })
