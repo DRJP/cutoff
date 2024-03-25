@@ -66,7 +66,6 @@ polygon(c(cut_off[-1],rev(cut_off[-1])),c(0,0,.55,.55), col=rgb(1,0,0,.2),border
 abline(v=cut_off[-1],lty=2,col="red")
 abline(v=cut_off[1],col="red")
 
-
 plot(y, fit2$pPositive)
 
 # X11()
@@ -76,14 +75,16 @@ minyy = floor(min(yy)); maxyy=ceiling(max(yy))
 (fit3 <- em(yy,"log-normal","log-normal", penaltyScale=0))
 (fit4 <- em(yy,"log-normal","log-normal", penaltyScale=1E4))
 (fit5 <- em(yy,"log-normal","log-normal", penaltyScale=1E8))
+(fit5b <- em(yy,"log-normal","log-normal", penaltyScale=1E20))
 # Replot data
-par(mfrow=c(1,3))
+par(mfrow=c(2,2))
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalised fit"); lines(fit3, col="blue", lwd=2)
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalised fit"); lines(fit4, col="green", lwd=2)
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalised fit"); lines(fit5, col="red", lwd=2)
+hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalised fit"); lines(fit5b, col="red", lwd=2)
 
 
-(fit6 <- em(yy,"weibull","weibull", penaltyScale=0))
+(fit6 <- em(yy,"weibull","weibull", penaltyScale=0, forceOrdering=TRUE))
 (fit7 <- em(yy,"weibull","weibull", penaltyScale=1E4))
 (fit8 <- em(yy,"weibull","weibull", penaltyScale=1E8))
 # Replot data

@@ -59,7 +59,7 @@ getMean <- function(D, mu, sigma) {
     Mean = mu
   if (D == "log-normal")
     Mean = exp(mu + sigma^2/2)
-  if (D == "Weibull")
+  if (D == "weibull")
     Mean = sigma*gamma(1+1/mu) # mu=proxy4(shape), sigma=proxy4(scale)
   if (D == "gamma")
     Mean = mu/sigma # mu=proxy4(shape), sigma=proxy4(rate)

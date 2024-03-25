@@ -10,7 +10,6 @@ mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,d1,d2,p1,p2,q1,q2,pen
 # "D1" and "D2" are two probability density functions.
 # "p1" and "p2" are two cummulative distribution functions.
   # "q1" and "q2" are two quantile functions.
-  # browser()
   params <- backTrans(D1, mu1, sigma1, D2, mu2, sigma2) # Transform from algorithm scale (-Inf, Inf) to biological scale
   names(params) <- c("mu1","sigma1","mu2","sigma2") # Could probably now remove this line, as naming done in backTrans should be OK
   lambda = mean(lambdaVec)
@@ -79,7 +78,6 @@ calcPenalty <- function(MU1,SIGMA1,MU2,SIGMA2,LAMBDA,data,d1,d2,p1,p2,q1,q2,pena
 # This function calculates the starting values of parameter "lambda".
 startval <- function(data,d1,d2) {
   #  require(tree) # for "tree".
-  # browser()
   thresh <- tree::tree(data~data)$frame$yval[1]
   sel    <- data<thresh
   data1  <- data[sel]
@@ -242,7 +240,6 @@ startval <- function(data,d1,d2) {
 # This function uses the EM algorithm to calculates parameters "lambda"
 # (E step), "mu1", "sigma1", "mu2" and "sigma2" (M step).
 em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e-64) {
-  # browser()
   data_name <- unlist(strsplit(deparse(match.call()),"="))[2]
   data_name <- sub(",.*$","",gsub(" ","",data_name))
   start <- as.list(startval(data,D1,D2))
@@ -263,7 +260,6 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       distr2 <- (1-lambda)*d2(data,mu2,sigma2)
       lambda <- distr1/(distr1+distr2) # lambda is a vector.
       # Minimization step (maximum-likelihood parameters estimations):
-      # browser()
       mLL2 <- function(mu1,sigma1,mu2,sigma2)
         return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale))
       start <- as.list(trans(D1, mu1, sigma1, D2, mu2, sigma2))
@@ -271,13 +267,11 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       # The following lines assign the MLE values to the corresponding parameters:
       # print( out)
       # print( log(abs(lambda0-mean(lambda))) )
-      # browser()
       coef <- out@coef
       coef <- backTrans(D1, coef["mu1"], coef["sigma1"], D2, coef["mu2"], coef["sigma2"])
       coef_n <- names(coef)
       # names(coef) <- NULL # No longer needed. Causes problems in print.em
-      for(i in 1:4)
-        assign(coef_n[i], (coef[i]))
+      for(i in 1:4) assign(coef_n[i], (coef[i]))
       #
       mean1 <- getMean(D1, mu1, sigma1)
       mean2 <- getMean(D2, mu2, sigma2)
@@ -319,7 +313,6 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrdering = FALSE, threshold=1e
       data_name=data_name,
       out=out,
       threshold=threshold)
-    # browser()
     class(out) <- "em"
     return(out)
   })
