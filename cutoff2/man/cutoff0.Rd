@@ -4,18 +4,7 @@
 \alias{cutoff0}
 \title{Cutoff value given parameter values.}
 \usage{
-cutoff0(
-  mu1,
-  sigma1,
-  mu2,
-  sigma2,
-  lambda,
-  D1,
-  D2,
-  distr = 2,
-  type1 = 0.05,
-  whose
-)
+cutoff0(mu1, sigma1, mu2, sigma2, lambda, D1, D2, type1 = 0.05, whose)
 }
 \description{
 Cutoff value given parameter values.

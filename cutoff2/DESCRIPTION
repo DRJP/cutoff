@@ -18,7 +18,8 @@ License: GPL-3
 Imports:
   mc2d,
   MASS,
-  tree
+  tree,
+  bbmle
 Suggests:
   knitr,
   testthat

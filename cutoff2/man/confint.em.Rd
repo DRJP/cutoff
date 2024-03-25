@@ -7,6 +7,8 @@
 \method{confint}{em}(object, threshold = 1e-64, nb = 10, level = 0.95)
 }
 \arguments{
+\item{object}{an object of class em, produced via the function em.}
+
 \item{threshold}{A numerical scalar indicating the value below which the E-M algorithm should stop.}
 
 \item{nb}{Number of Monte Carlo simulations.}

@@ -7,9 +7,7 @@
 #' some new examples have been added.
 #'
 #'
-#' @section Foo functions:
 #'
 #'
-#' @docType package
 #' @name cutoff2
 NULL

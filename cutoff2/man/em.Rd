@@ -65,8 +65,7 @@ confint(measles_out,threshold=1e-64,nb=100,level=.95)
 # Adding the E-M estimated finite mixture model:
 lines(measles_out,lwd=1.5,col="red")
 # The legend:
-legend("topleft",leg=c("non-parametric","E-M"),col=c("blue","red"),
-  lty=1,lwd=1.5,bty="n")
+legend("topleft",leg=c("non-parametric","E-M"),col=c("blue","red"), lty=1,lwd=1.5,bty="n")
 
 # Example 2: using penalisation to avoid curve 2 dominating curve 1 at low values of x
 set.seed(4)
@@ -135,7 +134,6 @@ abline(v=cut_off[1],col="red")
 ###################################
 ## Exploring different penalties ##
 ###################################
-
 par(mfrow=c(2,3))
 fit0 <- em(y,"normal","normal")
 fit2 <- em(y,"normal","normal", penaltyScale=1E2)
@@ -143,12 +141,18 @@ fit4 <- em(y,"normal","normal", penaltyScale=1E4)
 fit6 <- em(y,"normal","normal", penaltyScale=1E6)
 fit8 <- em(y,"normal","normal", penaltyScale=1E8)
 fit10 <- em(y,"normal","normal", penaltyScale=1E10)
-plot(y, fit0$pPositive, main="penaltyScale=0", xlab="Serology data", ylab="p(positive)", ylim=0:1); abline(h=0)
-plot(y, fit2$pPositive, main="penaltyScale=1E2", xlab="Serology data", ylab="p(positive)", ylim=0:1); abline(h=0)
-plot(y, fit4$pPositive, main="penaltyScale=1E4", xlab="Serology data", ylab="p(positive)"); abline(h=0)
-plot(y, fit6$pPositive, main="penaltyScale=1E6", xlab="Serology data", ylab="p(positive)"); abline(h=0)
-plot(y, fit8$pPositive, main="penaltyScale=1E8", xlab="Serology data", ylab="p(positive)"); abline(h=0)
-plot(y, fit10$pPositive, main="penaltyScale=1E10", xlab="Serology data", ylab="p(positive)"); abline(h=0)
+plot(y, fit0$pPositive, main="penaltyScale=0", xlab="Serology data", ylab="p(positive)", ylim=0:1)
+abline(h=0)
+plot(y, fit2$pPositive, main="penaltyScale=1E2", xlab="Serology data", ylab="p(positive)", ylim=0:1)
+abline(h=0)
+plot(y, fit4$pPositive, main="penaltyScale=1E4", xlab="Serology data", ylab="p(positive)")
+abline(h=0)
+plot(y, fit6$pPositive, main="penaltyScale=1E6", xlab="Serology data", ylab="p(positive)")
+abline(h=0)
+plot(y, fit8$pPositive, main="penaltyScale=1E8", xlab="Serology data", ylab="p(positive)")
+abline(h=0)
+plot(y, fit10$pPositive, main="penaltyScale=1E10", xlab="Serology data", ylab="p(positive)")
+abline(h=0)
 
 }
 \references{

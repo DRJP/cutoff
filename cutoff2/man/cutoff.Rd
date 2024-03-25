@@ -8,7 +8,6 @@ cutoff(
   object,
   t = 1e-64,
   nb = 10,
-  distr = 2,
   type1 = 0.05,
   level = 0.95,
   whose = "Choisy"
@@ -17,10 +16,9 @@ cutoff(
 \arguments{
 \item{object}{An output from the function \code{em}.}
 
-\item{nb}{Number of Monte Carlo simulations.}
+\item{t}{a threshold used in the estep function. Note, the estep function is not called from em - the E step for that function is performed internally.}
 
-\item{distr}{Either 1 or 2, indicates which distribution belonging the Type-I
-error corresponds to. 1 correspond to the first distribution in \code{object}. Only applies when whose=="Choisy".}
+\item{nb}{Number of Monte Carlo simulations.}
 
 \item{type1}{A numerical value between 0 and 1, the value of the type-I error. Only applies when whose=="Choisy".}
 
@@ -60,8 +58,7 @@ cutoff. This last step is performed by the \code{fitdistr} function of the
 length(measles)
 range(measles)
 # Plotting the data:
-hist(measles,100,FALSE,xlab="concentration",ylab="density",ylim=c(0,.55),
-  main=NULL,col="grey")
+hist(measles,100,FALSE,xlab="concentration",ylab="density",ylim=c(0,.55), main=NULL,col="grey")
 # Estimating the parameters of the finite mixture model:
 (measles_out <- em(measles,"normal","normal"))
 # Adding the E-M estimated finite mixture model:

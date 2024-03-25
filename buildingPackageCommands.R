@@ -14,9 +14,9 @@ roxygen2::roxygenise()
 #
 setwd(here::here())
 devtools::build("cutoff2", vignettes=TRUE) # FALSE
-#
+
 # devtools::check("cutoff2")
-#
+
 devtools::install("cutoff2", build_vignettes = TRUE) # FALSE
 
 

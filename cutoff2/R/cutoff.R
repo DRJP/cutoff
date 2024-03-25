@@ -18,36 +18,40 @@ findmode <- function(D,p1,p2) {
 #' @importFrom stats uniroot
 #' @keywords internal
 # This function returns the cutoff value given parameters values.
-cutoff0 <- function(mu1,sigma1,mu2,sigma2,lambda,D1,D2,distr=2,type1=.05,whose) {
-  # "distr" indicates which peak we are targetting.
+cutoff0 <- function(mu1,sigma1,mu2,sigma2,lambda,D1,D2,type1=.05,whose) {
   # browser()
-  D1b <- dHash[[D1]]
-  D2b <- dHash[[D2]]
-  P1  <- pHash[[D1]]
-  P2  <- pHash[[D2]]
-  Q1  <- qHash[[D1]]
-  Q2  <- qHash[[D2]]
-  # interval <- c(findmode(D1,mu1,sigma1),findmode(D2,mu2,sigma2)) # Possibly insufficiently robust
-  interval <- c(min(Q1(1E-11,mu1,sigma1),Q2(1E-11,mu2,sigma2)),
-                max(Q1(1 - 1E-11,mu1,sigma1),Q2(1 - 1E-11,mu2,sigma2)))
+  d1 <- dHash[[D1]]
+  d2 <- dHash[[D2]]
+  p1 <- pHash[[D1]]
+  p2 <- pHash[[D2]]
+  q1 <- qHash[[D1]]
+  q2 <- qHash[[D2]]
+  mean1 <- getMean(D1, mu1, sigma1)
+  mean2 <- getMean(D2, mu2, sigma2)
   if (whose=="Choisy") {
-    distr1 <- function(x) lambda * D1b(x, mu1, sigma1)
-    distr2 <- function(x) (1 - lambda) * D2b(x, mu2, sigma2)
-    if(distr==1) {
-      p <- function(x) distr1(x)/(distr1(x)+distr2(x))-1+type1
-    }  else {
+    distr1 <- function(x) lambda * d1(x, mu1, sigma1)
+    distr2 <- function(x) (1 - lambda) * d2(x, mu2, sigma2)
+    if(mean1 < mean2) {
       p <- function(x) distr2(x)/(distr1(x)+distr2(x))-1+type1
+    }  else {
+      p <- function(x) distr1(x)/(distr1(x)+distr2(x))-1+type1
     }
   }
   if (whose=="Titterington") {
     w1 = lambda
     w2 = 1 - lambda
-    if (mu1 < mu2) {
-      p <- function(x) (w1 - w1*P1(x,mu1,sigma1)) - (w2*P2(x,mu2,sigma2))
+    if (mean1 < mean2) {
+      p <- function(x) (w1 - w1*p1(x,mu1,sigma1)) - (w2*p2(x,mu2,sigma2))
     } else {
-      p <- function(x) (w2 - w2*P2(x,mu2,sigma2)) - (w1*P1(x,mu1,sigma1))
+      p <- function(x) (w2 - w2*p2(x,mu2,sigma2)) - (w1*p1(x,mu1,sigma1))
     }
   }
+  #
+  interval <- c(min(q1(1E-11,mu1,sigma1),q2(1E-11,mu2,sigma2)),
+                max(q1(1 - 1E-11,mu1,sigma1),q2(1 - 1E-11,mu2,sigma2)))
+  Seq <- seq(min(interval), max(interval), l=1111)
+  interval = c(Seq[which(p(Seq) == min(p(Seq)))][1], Seq[which(p(Seq) == max(p(Seq)))][1])
+  #
   return(uniroot(p,interval)$root)
 }
 
@@ -73,10 +77,9 @@ cutoff0 <- function(mu1,sigma1,mu2,sigma2,lambda,D1,D2,distr=2,type1=.05,whose) 
 #'
 #' @inheritParams em
 #' @inheritParams confint.em
+#' @param t a threshold used in the estep function. Note, the estep function is not called from em - the E step for that function is performed internally.
 #' @param level The confidence level required. Defaults to 0.95.
 #' @param object An output from the function \code{em}.
-#' @param distr Either 1 or 2, indicates which distribution belonging the Type-I
-#'   error corresponds to. 1 correspond to the first distribution in \code{object}. Only applies when whose=="Choisy".
 #' @param type1 A numerical value between 0 and 1, the value of the type-I error. Only applies when whose=="Choisy".
 #' @param whose A character string indicating whose cutoff to use.
 #'   The default setting "Choisy" lets the function behave as it does in Marc Choisy's cutoff package.
@@ -98,8 +101,7 @@ cutoff0 <- function(mu1,sigma1,mu2,sigma2,lambda,D1,D2,distr=2,type1=.05,whose) 
 #' length(measles)
 #' range(measles)
 #' # Plotting the data:
-#' hist(measles,100,FALSE,xlab="concentration",ylab="density",ylim=c(0,.55),
-#'   main=NULL,col="grey")
+#' hist(measles,100,FALSE,xlab="concentration",ylab="density",ylim=c(0,.55), main=NULL,col="grey")
 #' # Estimating the parameters of the finite mixture model:
 #' (measles_out <- em(measles,"normal","normal"))
 #' # Adding the E-M estimated finite mixture model:
@@ -118,18 +120,22 @@ cutoff0 <- function(mu1,sigma1,mu2,sigma2,lambda,D1,D2,distr=2,type1=.05,whose) 
 #' @export
 # This function returns cutoff value together with confidence interval from an
 # output of the "em" function.
-cutoff <- function(object,t=1e-64,nb=10,distr=2,type1=.05,level=.95,whose="Choisy") {
+cutoff <- function(object,t=1e-64,nb=10,type1=.05,level=.95,whose="Choisy") {
   # "object" is an output of the "em" function.
   #  require(mc2d) # for "rmultinormal".
   #  require(MASS) # for "fitdistr".
   # The dictionary:
   #  dHash <- c(normal=dnorm,"log-normal"=dlnorm,gamma=dgamma,weibull=dweibull)
   with(object,{
+#    browser()
     coef <- out@coef
     the_names <- names(coef)
-    # First we draw values for mu1, sigma1, mu2 and sigma2 in a multinormal
-    # distribution:
-    coef <- exp(mc2d::rmultinormal(nb,coef,as.vector(bbmle::vcov(out))))
+    # First we draw values for mu1, sigma1, mu2 and sigma2 in a multinormal distribution:
+    coef <- mc2d::rmultinormal(nb,coef, as.vector(bbmle::vcov(out))) ## swap exp for backTrans
+    btCoef <- coef
+    for (ii in 1:nrow(coef))
+      btCoef[ii,] <- backTrans(object$D1, coef[ii,1], coef[ii,2], object$D2, coef[ii,3], coef[ii,4])
+    coef <- btCoef
     coef <- as.list(data.frame(t(coef)))
     coef <- lapply(coef,function(x){
       names(x) <- the_names
@@ -148,8 +154,9 @@ cutoff <- function(object,t=1e-64,nb=10,distr=2,type1=.05,level=.95,whose="Chois
       return(as.list(x))
     })
     # Call the function "cutoff0" for each combination of parameters values:
+    # browser()
     out <- sapply(coef,function(x)
-      with(x,cutoff0(mu1,sigma1,mu2,sigma2,lambda,D1,D2,distr,type1,whose)))
+      with(x,cutoff0(mu1,sigma1,mu2,sigma2,lambda,D1,D2,type1,whose)))
     # Calculate the mean of the cutoff value, together with its confidence interval:
     out <- MASS::fitdistr(out,"normal")
     the_mean <- out$estimate["mean"]
