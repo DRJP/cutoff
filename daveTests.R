@@ -96,6 +96,7 @@ hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalty
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", main="Penalty = 1E8"); lines(fit8, col="red", lwd=2)
 
 
+yy = y - min(y) + 0.1
 penScale = 1E6
 par(mfrow=c(4,4))
 (fit1  <- em(yy,"normal","normal", penScale, TRUE))
@@ -118,10 +119,7 @@ hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("de
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit9$deviance), main="gamma-normal");            lines(fit9, col="blue", lwd=2)
 (fit10 <- em(yy,"gamma","weibull", penScale, TRUE))
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit10$deviance), main="gamma-weibull");           lines(fit10, col="blue", lwd=2)
-
 (fit11 <- em(yy,"gamma","gamma", penScale, TRUE))
-
-
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit11$deviance), main="gamma-gamma");             lines(fit11, col="blue", lwd=2)
 (fit12 <- em(yy,"gamma","log-normal", penScale, TRUE, thresh=exp(-25)))
 hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit12$deviance), main="gamma-log-normal");        lines(fit12, col="blue", lwd=2)

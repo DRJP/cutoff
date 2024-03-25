@@ -240,6 +240,47 @@ startval <- function(data,d1,d2) {
 #' plot(y, fit10$pPositive, main="penaltyScale=1E10", xlab="Serology data", ylab="p(positive)")
 #' abline(h=0)
 #'
+#' ############################################
+#' ## Comparing different model combinations ##
+#' ############################################
+#' \dontrun{
+#' yy = y - min(y) + 0.1
+#' penScale = 1E6
+#' par(mfrow=c(4,4))
+#' (fit1  <- em(yy,"normal","normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit1$deviance), main="normal-normal");           lines(fit1, col="blue", lwd=2)
+#' (fit2  <- em(yy,"normal","weibull", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit2$deviance), main="normal-weibull");          lines(fit2, col="blue", lwd=2)
+#' (fit3  <- em(yy,"normal","gamma", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit3$deviance), main="normal-gamma");            lines(fit3, col="blue", lwd=2)
+#' (fit4  <- em(yy,"normal","log-normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit4$deviance), main="normal - log-normal");     lines(fit4, col="blue", lwd=2)
+#' (fit5  <- em(yy,"weibull","normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit5$deviance), main="weibull-normal");          lines(fit5, col="blue", lwd=2)
+#' (fit6  <- em(yy,"weibull","weibull", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit6$deviance), main="weibull-weibull");         lines(fit6, col="blue", lwd=2)
+#' (fit7  <- em(yy,"weibull","gamma", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit7$deviance), main="weibull-gamma");           lines(fit7, col="blue", lwd=2)
+#' (fit8  <- em(yy,"weibull","log-normal", penaltyScale=1E9))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit8$deviance), main="weibull - log-normal");    lines(fit8, col="blue", lwd=2)
+#' (fit9  <- em(yy,"gamma","normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit9$deviance), main="gamma-normal");            lines(fit9, col="blue", lwd=2)
+#' (fit10 <- em(yy,"gamma","weibull", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit10$deviance), main="gamma-weibull");           lines(fit10, col="blue", lwd=2)
+#' (fit11 <- em(yy,"gamma","gamma", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit11$deviance), main="gamma-gamma");             lines(fit11, col="blue", lwd=2)
+#' (fit12 <- em(yy,"gamma","log-normal", penScale, TRUE, thresh=exp(-25)))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit12$deviance), main="gamma-log-normal");        lines(fit12, col="blue", lwd=2)
+#' (fit13 <- em(yy,"log-normal","normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit13$deviance), main="log-normal - normal");     lines(fit13, col="blue", lwd=2)
+#' (fit14 <- em(yy,"log-normal","weibull", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit14$deviance), main="log-normal - weibull");    lines(fit14, col="blue", lwd=2)
+#' (fit15 <- em(yy,"log-normal","gamma", penScale, TRUE, thresh=exp(-25)))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit15$deviance), main="log-normal-gamma");        lines(fit15, col="blue", lwd=2)
+#' (fit16 <- em(yy,"log-normal","log-normal", penScale, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit16$deviance), main="log-normal - log-normal"); lines(fit16, col="blue", lwd=2)
+#' }
+#'
 #' @export
 # This function uses the EM algorithm to calculates parameters "lambda"
 # (E step), "mu1", "sigma1", "mu2" and "sigma2" (M step).

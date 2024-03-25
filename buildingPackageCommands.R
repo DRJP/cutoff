@@ -19,8 +19,6 @@ devtools::build("cutoff2", vignettes=TRUE) # FALSE
 
 devtools::install("cutoff2", build_vignettes = TRUE) # FALSE
 
-
-
 library("cutoff2")
 help.start()
 
