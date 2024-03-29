@@ -30,6 +30,10 @@ mLL <- function(mu1,sigma1,mu2,sigma2,lambdaVec,data,D1,D2,d1,d2,p1,p2,q1,q2,pen
         penalty <- calcPenalty(mu2,sigma2,mu1,sigma1,1-lambda,data,d2,d1,p2,p1,q2,q1,penaltyScale)
       }
     }
+    ## if (length(penalty)==0) {
+    ##   nimble::nimPrint("-sum(ECDLL)=", -sum(ECDLL), "  -penalty=", -penalty)
+    ##   browser()
+    ## }
     return( -sum(ECDLL) - penalty)
     # return( -sum(LEL) - penalty)
   })
@@ -47,6 +51,9 @@ calcPenalty <- function(MU1,SIGMA1,MU2,SIGMA2,LAMBDA,data,d1,d2,p1,p2,q1,q2,pena
   ## calcPenalty assumes MU1 < MU2
   w1 = LAMBDA
   w2 = (1-LAMBDA)
+  ## curve(LAMBDA*dnorm(x, MU1, SIGMA1)+(1-LAMBDA)*dnorm(x,MU2,SIGMA2), floor(q1(1E-11,MU1,SIGMA1)), ceiling(q1(1-1E-11,MU1,SIGMA1)), n=1111)
+  ## curve(LAMBDA*dnorm(x, MU1, SIGMA1), floor(q1(1E-11,MU1,SIGMA1)), ceiling(q1(1-1E-11,MU1,SIGMA1)), n=1111, col="blue", add=TRUE)
+  ## curve((1-LAMBDA)*dnorm(x,MU2,SIGMA2), floor(q1(1E-11,MU1,SIGMA1)), ceiling(q1(1-1E-11,MU1,SIGMA1)), n=1111, col="red", add=TRUE)
   #### Penalise LHS
   X             = seq(floor(q1(1E-11,MU1,SIGMA1)), ceiling(q1(1-1E-11,MU1,SIGMA1)), l=1111)
   iNonsenseLeft = w1*d1(X,MU1,SIGMA1) < w2*d2(X,MU2,SIGMA2)
@@ -63,10 +70,14 @@ calcPenalty <- function(MU1,SIGMA1,MU2,SIGMA2,LAMBDA,data,d1,d2,p1,p2,q1,q2,pena
   ii             = sum(!iNonsenseRight)
   areaNonsenseRight   = 0
   if (ii < length(X)) {
+    ii = max(ii, 1)
     areaNonsenseRight = w1*(1-p1(X[ii],MU1,SIGMA1)) - w2*(1-p2(X[ii],MU2,SIGMA2))
   }
+  ## if (length(areaNonsenseRight)==0 | length(areaNonsenseLeft)==0)
+  ##   browser()
   #### Total Penalty
   penalty      = penaltyScale * log(1-areaNonsenseLeft-areaNonsenseRight)
+  ## nimble::nimPrint("areaNonsenseLeft=",areaNonsenseLeft,"  areaNonsenseRight=",areaNonsenseRight)
   return(penalty)
 }
 
@@ -221,23 +232,23 @@ startval <- function(data,d1,d2) {
 #' ## Exploring different penalties ##
 #' ###################################
 #' par(mfrow=c(2,3))
-#' fit0 <- em(y,"normal","normal")
-#' fit2 <- em(y,"normal","normal", penaltyScale=1E2)
-#' fit4 <- em(y,"normal","normal", penaltyScale=1E4)
-#' fit6 <- em(y,"normal","normal", penaltyScale=1E6)
-#' fit8 <- em(y,"normal","normal", penaltyScale=1E8)
+#' fit0  <- em(y,"normal","normal")
+#' fit2  <- em(y,"normal","normal", penaltyScale=1E2)
+#' fit4  <- em(y,"normal","normal", penaltyScale=1E4)
+#' fit6  <- em(y,"normal","normal", penaltyScale=1E6)
+#' fit8  <- em(y,"normal","normal", penaltyScale=1E8)
 #' fit10 <- em(y,"normal","normal", penaltyScale=1E10)
-#' plot(y, fit0$pPositive, main="penaltyScale=0", xlab="Serology data", ylab="p(positive)", ylim=0:1)
+#' plot(y, fit0$pPositive, main=paste("Penalty=0. Monotonic=", monotonic(fit0)), xlab="Serology data", ylab="p(positive)", ylim=0:1)
 #' abline(h=0)
-#' plot(y, fit2$pPositive, main="penaltyScale=1E2", xlab="Serology data", ylab="p(positive)", ylim=0:1)
+#' plot(y, fit2$pPositive, main=paste("Penalty=1E2. Monotonic=", monotonic(fit2)), xlab="Serology data", ylab="p(positive)", ylim=0:1)
 #' abline(h=0)
-#' plot(y, fit4$pPositive, main="penaltyScale=1E4", xlab="Serology data", ylab="p(positive)")
+#' plot(y, fit4$pPositive, main=paste("Penalty=1E4. Monotonic=", monotonic(fit4)), xlab="Serology data", ylab="p(positive)")
 #' abline(h=0)
-#' plot(y, fit6$pPositive, main="penaltyScale=1E6", xlab="Serology data", ylab="p(positive)")
+#' plot(y, fit6$pPositive, main=paste("Penalty=1E6. Monotonic=", monotonic(fit6)), xlab="Serology data", ylab="p(positive)")
 #' abline(h=0)
-#' plot(y, fit8$pPositive, main="penaltyScale=1E8", xlab="Serology data", ylab="p(positive)")
+#' plot(y, fit8$pPositive, main=paste("Penalty=1E8. Monotonic=", monotonic(fit8)), xlab="Serology data", ylab="p(positive)")
 #' abline(h=0)
-#' plot(y, fit10$pPositive, main="penaltyScale=1E10", xlab="Serology data", ylab="p(positive)")
+#' plot(y, fit10$pPositive, main=paste("Penalty=1E10. Monotonic=", monotonic(fit10)), xlab="Serology data", ylab="p(positive)")
 #' abline(h=0)
 #'
 #' ############################################
@@ -299,9 +310,12 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrder = FALSE, threshold=1e-64
   with(start, {
     # with(start, (abs(lambda0-mean(lambda))>threshold)  )
     while(abs(lambda0-mean(lambda))>threshold) {
-      # counter = counter + 1
-      # print(counter)
-      # browser()
+      ## counter = counter + 1
+      ## print(counter)
+      ## print(as.numeric(unlist(start)))
+      ## if(counter>41)
+      ##   browser()
+      ####
       lambda  <- mean(lambda)
       lambda0 <- lambda
       # Expectation step:
@@ -451,4 +465,21 @@ confint.em <- function(object,threshold=1e-64,nb=10,level=.95) {
   a <- coef_ci(object,level)
   b <- lambda_ci(object,threshold,nb,level)
   return(rbind(a,b))
+}
+
+
+
+#' Monotonic increase across data test.
+#'
+#' A simple test for monotonic increase in pPositive across the observed data.
+#'
+#' @param emObject an object of class em, produced via the function em.
+#' @return A logical indicator of whether or not the fitted model produces monotonic pPositive across the observed data.
+#' @export
+#' @examples
+#' # See the examples for the function em
+#' ?em
+monotonic <- function(emObject) {
+  # Test for monotonic increase in pPos across data
+  all(diff(emObject$pPos[order(emObject$data)]) >= 0)
 }

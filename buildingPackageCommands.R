@@ -1,3 +1,5 @@
+## Start a new R session to ensure help/cutoff2.rdb for html help files is not corrupt
+
 sessionInfo()
 setwd(here::here())
 # detach("package:cutoff")
@@ -14,9 +16,9 @@ roxygen2::roxygenise()
 #
 setwd(here::here())
 devtools::build("cutoff2", vignettes=TRUE) # FALSE
-
+#
 # devtools::check("cutoff2")
-
+#
 devtools::install("cutoff2", build_vignettes = TRUE) # FALSE
 
 library("cutoff2")
@@ -24,3 +26,6 @@ help.start()
 
 setwd("cutoff2")
 devtools::build_vignettes()
+
+
+devtools::install_github("DRJP/cutoff/cutoff2@penalties")
