@@ -354,7 +354,12 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrder = FALSE, threshold=1e-64
       mLL2 <- function(mu1,sigma1,mu2,sigma2)
         return(mLL(mu1,sigma1,mu2,sigma2,lambda,data,D1,D2,d1,d2,p1,p2,q1,q2,penaltyScale))
       start <- as.list(trans(D1, mu1, sigma1, D2, mu2, sigma2))
-      out   <- bbmle::mle2(mLL2,start,"Nelder-Mead", control=list(maxit=10000))
+      out   <- bbmle::mle2(mLL2,start,"Nelder-Mead", control=list(maxit=10000),
+                           ## Reduce step size in hessian calculation from d=1E-1 to d=1E-4
+                           ## May help to non-pos.semi.definiteness causing issues in rmultinormal cutoff
+                           hessian.opts = list(eps=1e-4, d=1E-4, r=4, v=2, show.details=FALSE,
+                                               zero.tol=sqrt(.Machine$double.eps/7e-7)))
+      #
       # The following lines assign the MLE values to the corresponding parameters:
       # print( out)
       # print( log(abs(lambda0-mean(lambda))) )
@@ -392,6 +397,9 @@ em <- function(data, D1, D2, penaltyScale=0, forceOrder = FALSE, threshold=1e-64
         }
       }
     }
+    #
+    # browser() # Is the Hessian positive semi definite ?
+    # matrixcalc::is.positive.semi.definite(out@details$hessian)
     #
     out <- list(
       pPositive=pPositive,
