@@ -117,7 +117,7 @@ startval <- function(data,d1,d2) {
 #'   normal     \tab mean     \tab sd    \cr
 #'   log-normal \tab meanlog  \tab sdlog \cr
 #'   gamma      \tab shape    \tab rate  \cr
-#'   Weibull    \tab shape    \tab scale
+#'   weibull    \tab shape    \tab scale
 #' }
 #' These parameters, together with the mixture parameter, are estimated by the
 #'  Expection-Maximization algorithm.
@@ -148,7 +148,11 @@ startval <- function(data,d1,d2) {
 #'    intervals of the parameters and \code{\link{cutoff}} for deriving a
 #'    cut-off value.
 #' @examples
-#' # Measles IgG concentration data:
+#' #################################
+#' #################################
+#' #### Example 1: Measles data ####
+#' #################################
+#' #################################
 #' length(measles)
 #' range(measles)
 #' # Plotting the data:
@@ -164,7 +168,12 @@ startval <- function(data,d1,d2) {
 #' # The legend:
 #' legend("topleft",leg=c("non-parametric","E-M"),col=c("blue","red"), lty=1,lwd=1.5,bty="n")
 #'
-#' # Example 2: using penalisation to avoid curve 2 dominating curve 1 at low values of x
+#'
+#' ##############################################################################################
+#' ##############################################################################################
+#' #### Example 2: using penalisation to avoid curve 2 dominating curve 1 at low values of x ####
+#' ##############################################################################################
+#' ##############################################################################################
 #' set.seed(4)
 #' par(mfrow=c(2,2))
 #' mu = c(4, 6)
@@ -255,41 +264,60 @@ startval <- function(data,d1,d2) {
 #' ## Comparing different model combinations ##
 #' ############################################
 #' \dontrun{
-#' yy = y - min(y) + 0.1
-#' penScale = 1E6
+#' yy = y - min(y) + 0.1  # 3 of the 4 models require +ve data
+#' minyy = floor(min(yy))
+#' maxyy = ceiling(max(yy))
+#' penScale = 1E11
 #' par(mfrow=c(4,4))
 #' (fit1  <- em(yy,"normal","normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit1$deviance), main="normal-normal");           lines(fit1, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit1$deviance), main="normal-normal")
+#' lines(fit1, col="blue", lwd=2)
 #' (fit2  <- em(yy,"normal","weibull", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit2$deviance), main="normal-weibull");          lines(fit2, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit2$deviance), main="normal-weibull")
+#' lines(fit2, col="blue", lwd=2)
 #' (fit3  <- em(yy,"normal","gamma", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit3$deviance), main="normal-gamma");            lines(fit3, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit3$deviance), main="normal-gamma")
+#' lines(fit3, col="blue", lwd=2)
 #' (fit4  <- em(yy,"normal","log-normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit4$deviance), main="normal - log-normal");     lines(fit4, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit4$deviance), main="normal - log-normal")
+#' lines(fit4, col="blue", lwd=2)
 #' (fit5  <- em(yy,"weibull","normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit5$deviance), main="weibull-normal");          lines(fit5, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit5$deviance), main="weibull-normal")
+#' lines(fit5, col="blue", lwd=2)
 #' (fit6  <- em(yy,"weibull","weibull", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit6$deviance), main="weibull-weibull");         lines(fit6, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit6$deviance), main="weibull-weibull")
+#' lines(fit6, col="blue", lwd=2)
 #' (fit7  <- em(yy,"weibull","gamma", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit7$deviance), main="weibull-gamma");           lines(fit7, col="blue", lwd=2)
-#' (fit8  <- em(yy,"weibull","log-normal", penaltyScale=1E9))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit8$deviance), main="weibull - log-normal");    lines(fit8, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit7$deviance), main="weibull-gamma")
+#' lines(fit7, col="blue", lwd=2)
+#' (fit8  <- em(yy,"weibull","log-normal", penScale))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit8$deviance), main="weibull - log-normal")
+#' lines(fit8, col="blue", lwd=2)
 #' (fit9  <- em(yy,"gamma","normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit9$deviance), main="gamma-normal");            lines(fit9, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit9$deviance), main="gamma-normal")
+#' lines(fit9, col="blue", lwd=2)
 #' (fit10 <- em(yy,"gamma","weibull", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit10$deviance), main="gamma-weibull");           lines(fit10, col="blue", lwd=2)
-#' (fit11 <- em(yy,"gamma","gamma", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit11$deviance), main="gamma-gamma");             lines(fit11, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit10$deviance), main="gamma-weibull")
+#' lines(fit10, col="blue", lwd=2)
+#' (fit11 <- em(yy,"gamma","gamma", pen=1E6, TRUE))
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit11$deviance), main="gamma-gamma")
+#' lines(fit11, col="blue", lwd=2) # Degenerate solution that overfits at 0.1
+#' print(fit11)
 #' (fit12 <- em(yy,"gamma","log-normal", penScale, TRUE, thresh=exp(-25)))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit12$deviance), main="gamma-log-normal");        lines(fit12, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit12$deviance), main="gamma-log-normal")
+#' lines(fit12, col="blue", lwd=2)
 #' (fit13 <- em(yy,"log-normal","normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit13$deviance), main="log-normal - normal");     lines(fit13, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit13$deviance), main="log-normal - normal")
+#' lines(fit13, col="blue", lwd=2)
 #' (fit14 <- em(yy,"log-normal","weibull", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit14$deviance), main="log-normal - weibull");    lines(fit14, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit14$deviance), main="log-normal - weibull")
+#' lines(fit14, col="blue", lwd=2)
 #' (fit15 <- em(yy,"log-normal","gamma", penScale, TRUE, thresh=exp(-25)))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit15$deviance), main="log-normal-gamma");        lines(fit15, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit15$deviance), main="log-normal-gamma")
+#' lines(fit15, col="blue", lwd=2)
 #' (fit16 <- em(yy,"log-normal","log-normal", penScale, TRUE))
-#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit16$deviance), main="log-normal - log-normal"); lines(fit16, col="blue", lwd=2)
+#' hist(yy, freq=FALSE, breaks=seq(minyy, maxyy, by=0.5), xlab="MFI", sub=paste("deviance", fit16$deviance), main="log-normal - log-normal")
+#' lines(fit16, col="blue", lwd=2)
 #' }
 #'
 #' @export
